@@ -15,15 +15,10 @@ function <<test.Test>> meta::nonRelational::functions::test::getAllPropertiesWhe
 
   let allFields = meta::external::store::document::tests::object::getAllFields();
 
-  let documentQuery = ^DocumentQuery(
-    fields=[$allFields->at(0), $allFields->at(1), $allFields->at(2)],
-    collection=$collection
-  );
-
-  assertEquals($documentQuery.fields->size(), 3);
-  assertEquals($documentQuery.fields->at(0).name, 'fName');
-  assertEquals($documentQuery.fields->at(1).name, 'lName');
-  assertEquals($documentQuery.fields->at(2).name, 'oNames');
+  assertEquals($properties.fields->size(), 3);
+  assertEquals($properties.fields->at(0).name, $allFields->at(0).name);
+  assertEquals($properties.fields->at(1).name, $allFields->at(1).name);
+  assertEquals($properties.fields->at(2).name, $allFields->at(2).name);
 }
 
 function <<test.Test>> meta::nonRelational::functions::test::getOnlyPropertiesThatAreStillInTheCollection():Boolean[1]
@@ -38,14 +33,9 @@ function <<test.Test>> meta::nonRelational::functions::test::getOnlyPropertiesTh
 
   let allFields = meta::external::store::document::tests::object::getAllFields();
 
-  let documentQuery = ^DocumentQuery(
-    fields=[$allFields->at(0), $allFields->at(1)],
-    collection=$collection
-  );
-
-  assertEquals($documentQuery.fields->size(), 2);
-  assertEquals($documentQuery.fields->at(0).name, 'fName');
-  assertEquals($documentQuery.fields->at(1).name, 'lName');
+  assertEquals($properties.fields->size(), 2);
+  assertEquals($properties.fields->at(0).name, $allFields->at(0).name);
+  assertEquals($properties.fields->at(1).name, $allFields->at(1).name);
 }
 
 function <<test.Test>> meta::nonRelational::functions::test::buildMongoQuery():Boolean[1]
