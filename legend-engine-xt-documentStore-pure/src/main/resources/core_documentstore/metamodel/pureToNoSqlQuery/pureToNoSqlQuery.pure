@@ -2,7 +2,9 @@ import meta::external::store::document::metamodel::*;
 import meta::external::shared::format::binding::*;
 import meta::nonRelational::functions::pureToNoSqlQuery::*;
 import meta::external::store::document::metamodel::mapping::*;
+import meta::nonRelational::functions::noSqlQueryToString::*;
 import meta::nonRelational::functions::noSqlQueryToString::default::*;
+
 
 // should go in a different file
 function <<access.private>> meta::nonRelational::functions::pureToNoSqlQuery::processFieldsInNoRelationalOperationElements(fields: DocumentStoreElement[*], collection: Collection[1]): DocumentQuery[*]
@@ -30,17 +32,32 @@ function meta::nonRelational::functions::pureToNoSqlQuery::processNoRelationalMa
   meta::nonRelational::functions::pureToNoSqlQuery::processFieldsInNoRelationalOperationElements($pairsMappingNameToField.second, $collection);
 }
 
-
-function meta::nonRelational::functions::noSqlQueryToString::processSingleLeafDynaFunction(d: DynaFunction[1]): String[1]
+function meta::nonRelational::functions::noSqlQueryToString::processDynaFunction(d: DynaFunction[1]): String[1]
 {
-  let field = $d.parameters->at(0).name;
+  let name = $d.name;
+  let parameters = $d.parameters;
 
-  // the pattern is with a match instead
-  let value = $d.parameters->at(1)->cast(@Literal).value;
-
-  if ($d.name == 'equals', | '"' + $field + '": "' + $value + '"', | '');
+// add all operations, greater than, lower than, etc
+  if ($name == 'equal' || $name == 'not equal',
+    | let operationSymbol = getOperationSymbol($name);
+      let key = $parameters->at(0)->cast(@Field).name;
+      let value = $parameters->at(1)->cast(@Literal).value;
+      '{ "' + $key + '": { "' + $operationSymbol + '": "' + $value + '" } }';
+    ,
+    | if ($name == 'and' || $name == 'or',
+      | let andOr = $parameters->fold({item, acc | $acc->concatenate(processDynaFunction($item->cast(@DynaFunction)))}, []);
+        '{ "$' + $name + '": [' + $andOr->joinStrings(', ') + '] }';
+      ,
+      | processDynaFunction($parameters->at(0)->cast(@DynaFunction)); // this "else" here assumes that the name of the dynaFunction is "group". Is there something else to consider?
+      )
+    );
 }
 
+function <<access.private>> meta::nonRelational::functions::noSqlQueryToString::getOperationSymbol(op:String[1]): String[1]
+{
+  // add all operations, greater than, lower than, etc
+  if ($op == 'equal', | '$eq', | '$eq')
+}
 
 function meta::nonRelational::functions::noSqlQueryToString::default::processDocumentQuery(dq:DocumentQuery[1]): String[1]
 {
@@ -54,8 +71,7 @@ function <<access.private>> meta::nonRelational::functions::noSqlQueryToString::
 
 function <<access.private>> meta::nonRelational::functions::noSqlQueryToString::default::processMatch(dq:DocumentQuery[1]): String[1]
 {
-  let opStr = if(true,| '{ "$match":{}', | '"$match":{"a map here to get the items"}');
-  $opStr;
+  if(true,| '{' + '"$match":{}', | '"$match":{"a map here to get the items"}');
 }
 
 function <<access.private>> meta::nonRelational::functions::noSqlQueryToString::default::processProject(dq:DocumentQuery[1]): String[1]

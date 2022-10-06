@@ -81,13 +81,66 @@ function <<test.Test>> meta::nonRelational::functions::test::buildFilter():Boole
   let dynaFunction = ^DynaFunction(
     id='dynaFunction',
     owner=$mongoStore,
-    name='equals',
+    name='equal',
     parameters=[$allFields->at(0), $literal]
   );
 
-  let actualOutput = meta::nonRelational::functions::noSqlQueryToString::processSingleLeafDynaFunction($dynaFunction);
+  let actualOutput = meta::nonRelational::functions::noSqlQueryToString::processDynaFunction($dynaFunction);
 
-  let expectedOutput = '"fName": "My first name"'; 
+  let expectedOutput = '{ "fName": { "$eq": "My first name" } }'; 
+
+  assertEquals($actualOutput, $expectedOutput);
+}
+
+function <<test.Test>> meta::nonRelational::functions::test::buildCompositeFilter():Boolean[1]
+{
+  let allFields = meta::external::store::document::tests::object::getAllFields();
+  let mongoStore = meta::external::store::document::tests::object::getMongoStore();
+  let literal1 = ^Literal(
+    id='literal',
+    owner=$mongoStore,
+    name='literal',
+    value='My first name'
+  );
+
+  let literal2 = ^Literal(
+    id='literal',
+    owner=$mongoStore,
+    name='literal',
+    value='My last name'
+  );
+
+  let dynaFunctionEqual1 = ^DynaFunction(
+    id='dynaFunction',
+    owner=$mongoStore,
+    name='equal',
+    parameters=[$allFields->at(0), $literal1]
+  );
+
+  let dynaFunctionEqual2 = ^DynaFunction(
+    id='dynaFunction',
+    owner=$mongoStore,
+    name='equal',
+    parameters=[$allFields->at(1), $literal2]
+  );
+
+  let dynaFunctionAnd = ^DynaFunction(
+    id='dynaFunction',
+    owner=$mongoStore,
+    name='and',
+    parameters=[$dynaFunctionEqual1, $dynaFunctionEqual2]
+  );
+
+  let dynaFunctionGroup = ^DynaFunction(
+    id='dynaFunction',
+    owner=$mongoStore,
+    name='group',
+    parameters=[$dynaFunctionAnd]
+  );
+
+  let actualOutput = meta::nonRelational::functions::noSqlQueryToString::processDynaFunction($dynaFunctionGroup);
+
+  let expectedOutput = '{ "$and": [{ "fName": { "$eq": "My first name" } }, { "lName": { "$eq": "My last name" } }] }'; 
 
   assertEquals($actualOutput, $expectedOutput);
 }
