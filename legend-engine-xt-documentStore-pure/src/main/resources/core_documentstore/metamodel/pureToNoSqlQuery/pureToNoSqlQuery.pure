@@ -4,7 +4,8 @@ import meta::nonRelational::functions::pureToNoSqlQuery::*;
 import meta::external::store::document::metamodel::mapping::*;
 import meta::nonRelational::functions::noSqlQueryToString::default::*;
 
-function meta::nonRelational::functions::pureToNoSqlQuery::processFieldsInNoRelationalOperationElements(fields: DocumentStoreElement[*], state: State[1], collection: Collection[1]): DocumentQuery[*]
+// should go in a different file
+function <<access.private>> meta::nonRelational::functions::pureToNoSqlQuery::processFieldsInNoRelationalOperationElements(fields: DocumentStoreElement[*], collection: Collection[1]): DocumentQuery[*]
 {
     let fieldNames = $fields->map(f| $f.name); // it can be done more efficiently with a set instead of an array.
     let activeFields = $collection.fields->filter(c| $c.name->in($fieldNames));
@@ -14,14 +15,34 @@ function meta::nonRelational::functions::pureToNoSqlQuery::processFieldsInNoRela
     );
 }
 
-function meta::nonRelational::functions::pureToNoSqlQuery::fieldNamesWithNoRelationalElement(r: RootDocumentInstanceSetImplementation[1], state: State[1]): Pair<String, DocumentStoreElement>[*]
+// should go in a different file
+function <<access.private>> meta::nonRelational::functions::pureToNoSqlQuery::fieldNamesWithNoRelationalElement(r: RootDocumentInstanceSetImplementation[1], state: State[1]): Pair<String, DocumentStoreElement>[*]
 {
   $r.propertyMappings
     ->filter(x | if($state.graphFetchFlow == true, | $x.property->in($state.graphFetchProperties), | true))
     ->map(pm|pair($pm.property.name->toOne(),$pm->cast(@DocumentPropertyMapping).documentStoreElement))
 }
 
-function meta::nonRelational::functions::noSqlQueryToString::default::processDocumentQuery(dq:DocumentQuery[1]):String[1]
+// should go in a different file
+function meta::nonRelational::functions::pureToNoSqlQuery::processNoRelationalMappingSpecification(r: RootDocumentInstanceSetImplementation[1], state: State[1], collection: Collection[1]): DocumentQuery[*]
+{
+  let pairsMappingNameToField = meta::nonRelational::functions::pureToNoSqlQuery::fieldNamesWithNoRelationalElement($r, $state);
+  meta::nonRelational::functions::pureToNoSqlQuery::processFieldsInNoRelationalOperationElements($pairsMappingNameToField.second, $collection);
+}
+
+
+function meta::nonRelational::functions::noSqlQueryToString::processSingleLeafDynaFunction(d: DynaFunction[1]): String[1]
+{
+  let field = $d.parameters->at(0).name;
+
+  // the pattern is with a match instead
+  let value = $d.parameters->at(1)->cast(@Literal).value;
+
+  if ($d.name == 'equals', | '"' + $field + '": "' + $value + '"', | '');
+}
+
+
+function meta::nonRelational::functions::noSqlQueryToString::default::processDocumentQuery(dq:DocumentQuery[1]): String[1]
 {
   '{"aggregate":"' + $dq.collection.name + '", "pipeline":' + processPipelines($dq)
 }

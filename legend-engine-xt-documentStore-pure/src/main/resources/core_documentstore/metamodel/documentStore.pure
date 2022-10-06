@@ -126,3 +126,14 @@ Class meta::external::store::document::metamodel::DocumentQuery
   fields: Field[*];
   collection: Collection[1];
 }
+
+Class meta::external::store::document::metamodel::DynaFunction extends meta::external::store::document::metamodel::DocumentStoreElement
+{
+  name: String[1];
+  parameters: DocumentStoreElement[*];
+}
+
+Class meta::external::store::document::metamodel::Literal extends meta::external::store::document::metamodel::DocumentStoreElement
+{
+  <<equality.Key>> value: String[1];
+}
