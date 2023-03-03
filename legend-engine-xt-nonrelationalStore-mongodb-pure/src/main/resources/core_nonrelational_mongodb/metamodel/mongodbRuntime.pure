@@ -23,14 +23,15 @@ Enum meta::external::store::mongodb::metamodel::runtime::DatabaseType
   MongoDb
 }
 
-Class meta::external::store::mongodb::metamodel::runtime::MongoDBConnection extends Connection
+Class meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnection extends Connection
 [
    $this.element->instanceOf(MongoDatabase)
 ]
 {
    type: meta::external::store::mongodb::metamodel::runtime::DatabaseType[1];
-   dataSourceSpecification: MongoDBDatasourceSpecification[1];
-   authenticationSpecification: AuthenticationSpecification[1];
+   TODO: these are non optional
+   dataSourceSpecification: MongoDBDatasourceSpecification[0..1];
+   authenticationSpecification: AuthenticationSpecification[0..1];
    debug: Boolean[0..1];
 }
 
