@@ -1,3 +1,4 @@
+import meta::pure::router::store::metamodel::*;
 import meta::pure::router::routing::*;
 import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::external::store::mongodb::functions::pureToDatabaseCommand::*;
@@ -35,35 +36,31 @@ function meta::external::store::mongodb::contract::mongoDbStoreContract(): Store
 
 function meta::external::store::mongodb::contract::planExecution(sq:meta::pure::mapping::StoreQuery[1], ext:RoutedValueSpecification[0..1], m:Mapping[0..1], runtime:Runtime[0..1], exeCtx:ExecutionContext[1], extensions:Extension[*], debug:DebugContext[1]): meta::pure::executionPlan::ExecutionNode[1]
 {
-   let store = $sq.store->cast(@MongoDatabase);
-   let fe = $sq.fe->evaluateAndDeactivate();
-   let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDatabaseConnection));
-       let storeRuntime = if($connections->size() <= 1,
+    let store = $sq.store->cast(@MongoDatabase);
+    let fe = $sq.fe->evaluateAndDeactivate();
+    let connections = $runtime.connections->filter(c | $c->instanceOf(MongoDatabaseConnection));
+    let storeRuntime = if($connections->size() <= 1,
                              | $runtime->toOne(),
                              | let oldRuntime = $runtime->toOne();
                                let dbConn = $oldRuntime->connectionByElement($store)->cast(@MongoDatabaseConnection);
                                ^$oldRuntime(connections = $dbConn);
                           );
 
-      //let queryExeCtx = if($exeCtx->instanceOf(MongoDbExecutionContext),|$exeCtx,|[])->cast(@MongoDbExecutionContext);
-      //let queryExeCtx = $exeCtx->cast(@MongoDbExecutionContext);
-      let queryExeCtx = $exeCtx;
-      let originalQuery = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
-      $originalQuery;
-      let node = ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(resultType = ^meta::pure::executionPlan::ResultType(type = Any), databaseCommand = $originalQuery);
-      let possibleClass = $sq.fe.genericType.rawType->toOne();
-      println('planExecution possible class');
-      //println($possibleClass->cast(@Class<Any>));
-      //println($m->toOne().rootClassMappingByClass($possibleClass->cast(@Class<Any>))->toOne());
+    let databaseCommand = $sq.fe->toDatabaseCommand($m->toOne(), $sq.inScopeVars, $debug, $extensions)->cast(@DatabaseCommand);
 
-      // let setImplementations = $m->toOne().rootClassMappingByClass($possibleClass->cast(@Class<Any>))->toOne()->resolveOperation($m->toOne());
-      let classResultType = ^ClassResultType(type=$possibleClass, setImplementations=[]);
+    let connection = $runtime->toOne()->connectionByElement($store)->cast(@MongoDatabaseConnection);
 
-      ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = $classResultType, resultSizeRange = PureOne);
-      /*
-      $originalQuery->postProcessSQLQuery($store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $extensions)
-                    ->generateExecutionNodeForPostProcessedResult($sq, $store, $ext, $m->toOne(), $storeRuntime, $exeCtx, $debug, $extensions);
-                    */
+    let node = ^meta::external::store::mongodb::mapping::MongoDbExecutionNode(
+        resultType = ^meta::pure::executionPlan::ResultType(type = Any),
+        databaseCommand = $databaseCommand,
+        connection = $connection
+      );
+
+    let possibleClass = $sq.fe.genericType.rawType->toOne();
+    let setImplementations = $ext->cast(@StoreMappingRoutedValueSpecification).sets->at(0);
+    let classResultType = ^ClassResultType(type=$possibleClass, setImplementations=$setImplementations);
+
+    ^meta::external::store::mongodb::mapping::MongoDbClassInstantiationExecutionNode(executionNodes = $node, resultType = $classResultType, resultSizeRange = $sq.fe.multiplicity);
 }
 
 function meta::external::store::mongodb::contract::supportsStream(f:FunctionExpression[1]):Boolean[1]

@@ -1,10 +1,12 @@
 import meta::external::store::mongodb::metamodel::aggregation::*;
 import meta::pure::executionPlan::*;
 import meta::external::store::mongodb::mapping::*;
+import meta::external::store::mongodb::metamodel::runtime::*;
 
 Class meta::external::store::mongodb::mapping::MongoDbExecutionNode extends ExecutionNode
 {
   databaseCommand: DatabaseCommand[1];
+  connection: MongoDatabaseConnection[1];
 }
 
 Class meta::external::store::mongodb::mapping::MongoDbInstantiationExecutionNode extends ExecutionNode

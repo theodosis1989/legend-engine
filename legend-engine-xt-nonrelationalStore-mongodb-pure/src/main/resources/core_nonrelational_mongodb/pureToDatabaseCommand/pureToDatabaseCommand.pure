@@ -153,18 +153,17 @@ function meta::external::store::mongodb::functions::pureToDatabaseCommand::proce
   let setImplementation = $functionExpression.parametersValues->at(0)->cast(@StoreMappingRoutedValueSpecification).sets->toOne();
   let collectionName = $setImplementation->cast(@RootMongoDBInstanceSetImplementation).mainCollection->cast(@Collection).name;
   let projectedKeys = getProjectKeyValuesForMongoDBPropertyMappings($setImplementation->cast(@RootMongoDBInstanceSetImplementation).propertyMappings->cast(@MongoDBPropertyMapping));
-  let result = ^$databaseCommand(collectionName=$collectionName, aggregationPipeline=^AggregationPipeline(stages=^ProjectStage(projections=^ObjectExpression(keyValues=[$projectedKeys]))));
+  let result = ^$databaseCommand(collectionName=$collectionName, aggregationPipeline=^AggregationPipeline(stages=^ProjectStage(projections=$projectedKeys)));
   $result;
 }
 
-function meta::external::store::mongodb::functions::pureToDatabaseCommand::getProjectKeyValuesForMongoDBPropertyMappings(propertyMappings: MongoDBPropertyMapping[*]): KeyValueExpressionPair[*]
+function meta::external::store::mongodb::functions::pureToDatabaseCommand::getProjectKeyValuesForMongoDBPropertyMappings(propertyMappings: MongoDBPropertyMapping[*]): ObjectQueryExpression[1]
 {
-  $propertyMappings->map(k |
+  let keyValues = $propertyMappings->map(k |
     let field = $k.property.name->toOne();
-    // ^KeyValueExpressionPair(argument=^ComputedFieldValue(value=$k.field.path), field=$field);
-    // TODO HG
-    ^KeyValueExpressionPair(argument=^ComputedFieldValue(value='TODO HG'), field=$field);
+    ^QueryExprKeyValue(key=^FieldPathExpression(fieldPath=$field), value=^LiteralValue(value=^IntTypeValue(value=1)));
   );
+  ^ObjectQueryExpression(keyValues=$keyValues);
 }
 
 function meta::external::store::mongodb::functions::pureToDatabaseCommand::findSupportedFunction(fe:FunctionExpression[1], supportedFunctions:Map<meta::pure::metamodel::function::Function<Any>,meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoDBOperationElement[1]}>>[1]):meta::pure::metamodel::function::Function<{FunctionExpression[1], DatabaseCommand[1], Mapping[1], Map<String, List<Any>>[1], DebugContext[1]->MongoDBOperationElement[1]}>[0..1]

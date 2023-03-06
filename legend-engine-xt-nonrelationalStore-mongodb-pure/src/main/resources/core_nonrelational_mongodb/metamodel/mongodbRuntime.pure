@@ -29,7 +29,7 @@ Class meta::external::store::mongodb::metamodel::runtime::MongoDatabaseConnectio
 ]
 {
    type: meta::external::store::mongodb::metamodel::runtime::DatabaseType[1];
-   TODO: these are non optional
+   // TODO: these are not optional, need to be implemented
    dataSourceSpecification: MongoDBDatasourceSpecification[0..1];
    authenticationSpecification: AuthenticationSpecification[0..1];
    debug: Boolean[0..1];
