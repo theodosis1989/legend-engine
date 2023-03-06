@@ -71,6 +71,7 @@ import org.finos.legend.engine.plan.execution.api.ExecutePlanStrategic;
 import org.finos.legend.engine.plan.execution.api.concurrent.ConcurrentExecutionNodeExecutorPoolInfo;
 import org.finos.legend.engine.plan.execution.service.api.ServiceModelingApi;
 import org.finos.legend.engine.plan.execution.stores.inMemory.plugin.InMemory;
+import org.finos.legend.engine.plan.execution.stores.relational.AlloyH2Server;
 import org.finos.legend.engine.plan.execution.stores.relational.api.RelationalExecutorInformation;
 import org.finos.legend.engine.plan.execution.stores.relational.config.RelationalExecutionConfiguration;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.api.schema.SchemaExplorationApi;
@@ -132,10 +133,31 @@ public class Server<T extends ServerConfiguration> extends Application<T>
 
     private Environment environment;
 
+    private org.h2.tools.Server h2Server;
+
     public static void main(String[] args) throws Exception
     {
         EngineUrlStreamHandlerFactory.initialize();
         new Server().run(args.length == 0 ? new String[]{"server", "legend-engine-server/src/test/resources/org/finos/legend/engine/server/test/userTestConfig.json"} : args);
+    }
+
+    private void setupLocalH2Db()
+    {
+        long start = System.currentTimeMillis();
+        System.out.println("Starting setup of dynamic connection for database: H2 ");
+
+        int relationalDBPort = 9092;
+        try
+        {
+            h2Server =  AlloyH2Server.startServer(relationalDBPort);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.println("Completed setup of dynamic connection for database: H2 on port:" + relationalDBPort + " , time taken(ms):" + (end - start));
     }
 
     @Override
@@ -156,6 +178,9 @@ public class Server<T extends ServerConfiguration> extends Application<T>
         bootstrap.addBundle(new SessionAttributeBundle());
         bootstrap.addBundle(new MultiPartBundle());
         bootstrap.addBundle(new ErrorHandlingBundle<T>(serverConfiguration -> serverConfiguration.errorhandlingconfiguration));
+
+        // localh2server on 9092
+        setupLocalH2Db();
 
         // Enable variable substitution with environment variables
         bootstrap.setConfigurationSourceProvider(new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(), new EnvironmentVariableSubstitutor(true)));

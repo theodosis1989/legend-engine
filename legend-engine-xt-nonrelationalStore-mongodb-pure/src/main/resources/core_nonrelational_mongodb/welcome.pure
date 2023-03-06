@@ -208,7 +208,7 @@ function mongoExec():Any[*]
 
    // let fe = $cluster.val->byPassValueSpecificationWrapper()->cast(@FunctionExpression);
 
-    //let result = execute($personQuery, $mappingMongo, $mongoRuntime, meta::external::store::mongodb::extension::mongoDbExtensions()).values;
+    let result = execute($personQuery, $mappingMongo, $mongoRuntime, meta::external::store::mongodb::extension::mongoDbExtensions()).values;
 
 /*
    let result = meta::legend::execute(
@@ -221,10 +221,11 @@ function mongoExec():Any[*]
 
    // let result = meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand($personQuery.expressionSequence, $mapping, newMap([]), $debugContext, meta::external::store::mongodb::extension::mongoDbExtensions());
 
-    let result = meta::pure::executionPlan::executionPlan($personQuery, $mappingMongo, $mongoRuntime, $executionContext, meta::external::store::mongodb::extension::mongoDbExtensions()->concatenate(bindingExtensionsWithLegendJavaPlatformBinding([])), $debugContext);
+    //let result = meta::pure::executionPlan::executionPlan($personQuery, $mappingMongo, $mongoRuntime, $executionContext, meta::external::store::mongodb::extension::mongoDbExtensions()->concatenate(bindingExtensionsWithLegendJavaPlatformBinding([])), $debugContext);
 
    println('the result is');
-   println($result.rootExecutionNode->cast(@MongoDbClassInstantiationExecutionNode).executionNodes->at(0)->cast(@MongoDbExecutionNode).databaseCommand, 8);
+   println($result);
+   //println($result.rootExecutionNode->cast(@MongoDbClassInstantiationExecutionNode).executionNodes->at(0)->cast(@MongoDbExecutionNode).databaseCommand, 8);
    //println($result.rootExecutionNode->cast(@CurrentExecutionNode).databaseCommand);
 
    // let result = meta::external::store::mongodb::functions::pureToDatabaseCommand::toDatabaseCommand($fe, $mappingMongo, $inScopeVars,  $debugContext, $executionContext, $mongoExtensions);
@@ -251,8 +252,8 @@ function relationalExec(): Any[*]
 
 
     println('result before');
-    println($result);
-   println('result after');
+    //println($result);
+   //println('result after');
 
 
 }
