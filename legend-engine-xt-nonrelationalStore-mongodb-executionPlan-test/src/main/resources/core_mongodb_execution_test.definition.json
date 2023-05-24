@@ -9,7 +9,6 @@
     "platform_dsl_graph",
     "core",
     "core_external_compiler",
-    "core_external_language_java",
     "core_external_execution",
     "core_external_format_json",
     "core_java_platform_binding",
